@@ -5,6 +5,7 @@ Includes Class for a chess board square
 """
 from typing import List, Dict
 import settings as sett
+import pieces
 
 
 class Board:
@@ -12,40 +13,110 @@ class Board:
     Board Class
     Holds all the squares and formats them
 
-    squares = {row: sq_obj sorted in files}
-    squares = {1: a1, b1, c1.... 2: a2, b2, c3...}
+    squares = [[8], [7], [6]...]
+    squares = [[a8, b8, c8...], [a7, b7, c7...]...]
+
+    Representation Invariants
+    ========================
+    len(squares) == 8
+    len(squares[i]) == 8
     """
+    squares: [['Square']]  # Private
 
     def __init__(self):
-        self.squares = self.init_square_dic()
+        self.squares = self.init_square_list()
 
-    def add_square(self, sq_obj: 'Square' ) -> None:
+    def add_square(self, sq_obj: 'Square') -> None:
+        rr = sett.rows[::-1]  # Reversed rows, used for indexing
 
-        self.squares[sq_obj.row].append(sq_obj)
-        self.squares[sq_obj.row] = sorted(self.squares[sq_obj.row],
-                                          key=lambda f: f.file)
+        self.squares[rr.index(sq_obj.row)].append(sq_obj)
+        self.squares[rr.index(sq_obj.row)] = sorted(
+            self.squares[rr.index(sq_obj.row)],
+            key=lambda f: f.file)
 
-    def init_square_dic(self):
+    def init_square_list(self) -> List[List]:
         """
         To create the empty squares dictionary to organize
         all the square of the board
+        >>> b = Board()
+        >>> b.init_square_list()
+        [[], [], [], [], [], [], [], []]
         """
-        squares = {}
-        for row in sett.rows:
-            squares[row] = []
+        squares = []
+        for i in range(8):
+            squares.append([])
         return squares
+
+    def get_board(self) -> List[List['Square']]:
+        """
+        Returns a copy of the virtual board, the list of lists
+        """
+        return self.squares
+
+    # Todo Set this one time to save time, set as attribute
+    def get_colour_pieces_on_board(self, colour: str):
+        """
+        Returns a list of all the pieces on the board of colour
+        """
+        the_alive_ones = []
+        for row in self.squares:
+            for square in row:
+                if isinstance(square.holding, pieces.Piece):
+                    if square.holding.team == colour:
+                        the_alive_ones.append(square.holding)
+        return the_alive_ones
+
+    # Todo Set this one time to save time, set as attribute
+    def get_type_of_pieces(self, piece_type: str, colour: str):
+        """
+        Return a list of all the pieces of piece_type of colour
+        """
+        the_chosen_ones = []
+        coloured = self.get_colour_pieces_on_board(colour)
+        for peece in coloured:
+            if peece.type_ == piece_type:
+                the_chosen_ones.append(peece)
+        return the_chosen_ones
+
+
+    def flip_board(self) -> None:
+        """
+        Internally flip the board, white is on top, black on bottom
+        """
+        for row in range(len(self.squares)):
+            self.squares[row] = self.squares[row][::-1]
+        self.squares = self.squares[::-1]
+
+    def get_square(self, file: str, row: str) -> 'Square':
+        """
+        Retrieve a specific square given code
+        Return square object
+        """
+        rr = sett.rows[::-1]
+        row = rr.index(row)
+        sq = self.squares[row][sett.files.index(file)]
+        return sq
+
+    def get_piece(self, file, row):
+        """
+        Returns piece object if piece object exists in the code
+        """
+        sq = self.get_square(file, row)
+        if sq.holding:
+            return sq.holding
+
 
     def place_piece(self, piece: 'Piece object') -> None:
         piece_row = piece.row
         piece_file = piece.file
+        rr = sett.rows[::-1]
         # Square of interest
-        soi = self.squares[piece_row][sett.files.index(piece_file)]
+        soi = self.squares[rr.index(piece_row)][sett.files.index(piece_file)]
 
-        if soi.holding is not None:
-            print("Piece: {} is trying to move onto square: {} but piece: {}" +
-                  "is already on it".format(piece.type_, soi.code,
-                                            soi.holding.type_))
-            raise Exception
+        if soi.holding is not None or isinstance(soi.holding, pieces.Piece):
+            if soi.holding is not piece:
+                print(soi.holding.code + 'is already on this square')
+                raise Exception
         soi.holding = piece
 
     def remove_piece(self, piece: 'Piece object') -> bool:
@@ -55,24 +126,25 @@ class Board:
 
         Return True if piece is removed, False if something went wrong
         """
-        for row in self.squares.values():
+
+        for row in self.squares:
             for sq in row:
-                if sq.holding is piece:
+                if sq.holding and sq.holding is piece:
                     sq.holding = None
                     return True
         return False
 
     def __str__(self):
-        board_str = ''
-        line_str = ''
-        for file in self.squares.values():
-            for sq in file:
-                if sq.holding:
-                    line_str += sq.holding.type_[0] + '   '
+        board_str = '['
+
+        for row in self.squares:
+            board_str += '['
+            for sq in row:
+                if isinstance(sq.holding, pieces.Piece):
+                    board_str += sq.holding.code + ', '
                 else:
-                    line_str += str(sq)
-            board_str = line_str + '\n' + board_str
-            line_str = ''
+                    board_str += sq.code + ',   '
+            board_str += '], \n'
         return board_str
 
 
@@ -95,17 +167,32 @@ class Square:
     file: str
     row: str
     attacked: [bool, bool]  # white, black
-    colour: int
+    cur_colour: str
     code: str
-    holding: 'Piece object'
+    holding: 'pieces.Piece'
+    default_colour: str # black or white by default
 
-    def __init__(self, colour: int, file: str, row: str):
+    def __init__(self, colour: str, file: str, row: str):
         self.file = file
-        self.colour = colour
+        self.cur_colour = colour
         self.row = row
         self.attacked = [False, False]
         self.code = file + row
         self.holding = None
+        self.default_colour = colour
+
+    def change_colour(self, colour):
+        """
+        Change colour of square
+        Used to highlight a square
+        """
+        self.cur_colour = colour
+
+    def get_default_colour(self):
+        """
+        Return Default colour of the square
+        """
+        return self.default_colour
 
     def __str__(self):
         formatting = '{}{}, '.format(self.file, self.row)
@@ -118,7 +205,7 @@ def create_board() -> 'Board':
     for Row in range(8):
         for File in range(8):
             colour_flag += 1
-            square = Square(sett.sq_colours[colour_flag % 2], sett.files[File],
+            square = Square(sett.teams[colour_flag % 2], sett.files[File],
                             sett.rows[Row])
             board.add_square(square)
         colour_flag += 1
