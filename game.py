@@ -76,10 +76,18 @@ def start_game():
                       sett.rows[6], sett.piece_types[5], sett.teams[1])
         master_board.place_piece(pawn)
 
+    for peece in master_board.get_colour_pieces_on_board('white'):
+        peece.create_vision(master_board)
+    for peece in master_board.get_colour_pieces_on_board('black'):
+        peece.create_vision(master_board)
+
+
 
 def can_piece_move(piece: 'Piece object', to_row: str, to_file: str) -> bool:
     """
     Given a piece and a destination, return True if piece can move there
+    Check vision of a piece then if anything is blocking it
+    Maybe put it in piece class
     """
     pass
 
@@ -104,6 +112,8 @@ def move_piece(piece: 'Piece object', to_row: str, to_file: str) -> None:
 
     global turn_number
 
+    if piece is None:
+        return None
     # Remove current piece from wherever it is on board
     worked = master_board.remove_piece(piece)
     if not worked:
@@ -112,7 +122,8 @@ def move_piece(piece: 'Piece object', to_row: str, to_file: str) -> None:
         raise Exception
 
     # Change piece object attributes
-    piece.move_piece(to_row, to_file)
+    piece.move_piece_object(to_row, to_file, master_board)
+    piece.create_vision(master_board)
 
     # Move piece to new spot on board
     master_board.place_piece(piece)

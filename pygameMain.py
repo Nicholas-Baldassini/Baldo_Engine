@@ -2,9 +2,12 @@ import pygame
 import settings as sett
 import game
 import pieces
+import board
 import graphics_process as gp
 import moveStringProcessing as MP
 
+pygame_board = {}
+select_mode = [False, None]
 
 def master_game():
     screen = pygame.display.set_mode(sett.size)
@@ -12,6 +15,7 @@ def master_game():
     pygame.display.set_caption("BaldCorpium")
 
     global pygame_board
+    global select_mode
     pygame_board = {}
     skip = 0
     draw_squares(screen)
@@ -28,35 +32,35 @@ def master_game():
 
         draw_pieces(screen)
         detect_mouse_additional(screen)
-        move_piece()
-
+        sq_ = hovered_square()
+        check_hovered(sq_)
 
         pygame.display.update()
         pygame.time.delay(sett.FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                select_mode[0] = not select_mode[0]
+                select_possible_piece(sq_, select_mode)
 
 
-
-def move_piece():
-    flip = False
-    pos = pygame.mouse.get_pos()
-    posx = pos[0]
-    posy = pos[1]
-    fu = sett.move_piece_button
-    move = ''
-
-    # Check for button flip event
-    # Add any other additional buttons or interactions we want
-
-    if fu['x'] <= posx <= fu['x'] + fu['width'] and \
-            fu['y'] <= posy <= fu['y'] + fu['height']:
-        if pygame.mouse.get_pressed(3)[0]:
-            move = input('Where do you want to move: ')
-    if move:
-        MP.make_move(move)
-
+def select_possible_piece(square: board.Square,
+                          select_mode_: [bool, pieces.Piece]):
+    if select_mode_[0]:
+        if square and square.holding:
+            select_mode_[1] = square.holding
+        else:
+            select_mode_[1] = None
+    else:
+        if square and square.holding:
+            # Clicked same piece again, should unselect it
+            if square.holding == select_mode_[1]:
+                select_mode_[1] = None
+        else:
+            if square:
+                print(square.row, square.file)
+                game.move_piece(select_mode_[1], square.row, square.file)
 
 
 def draw_squares(screen: 'pygame screen') -> None:
@@ -115,23 +119,35 @@ def draw_additionals(screen) -> None:
                                                 mp.get('height')))
 
 
+def check_hovered(square: 'board.Square') -> None:
+    visioned = []
+    if square:
+        if square.holding:
+            # CREATE VISION ALREADY THIS IS FOR TESTING # done :)
+            visioned.extend(square.holding.vision)
+    for sq in pygame_board:
+        if sq in visioned:
+            sq.change_colour('gray')
+        elif sq.cur_colour is not sq.default_colour:
+            if sq.cur_colour != 'hovered':
+                sq.change_colour(sq.default_colour)
 
 
-# def hovered_square() -> 'Square object':
-#     pos = pygame.mouse.get_pos()
-#     posx = pos[0]
-#     posy = pos[1]
-#
-#     soi = None
-#     for sq in pygame_board:
-#         if pygame_board[sq]['x'] <= posx <= pygame_board[sq]['width'] and \
-#                 pygame_board[sq]['y'] <= posy <= pygame_board[sq]['height']:
-#             sq.change_colour('hovered')
-#             soi = sq
-#         else:
-#             if sq.cur_colour is not sq.default_colour:
-#                 sq.change_colour(sq.default_colour)
-#     return soi
+def hovered_square() -> 'board.Square':
+    pos = pygame.mouse.get_pos()
+    posx = pos[0]
+    posy = pos[1]
+
+    soi = None
+    for sq in pygame_board:
+        if pygame_board[sq]['x'] <= posx <= pygame_board[sq]['width'] and \
+                pygame_board[sq]['y'] <= posy <= pygame_board[sq]['height']:
+            sq.change_colour('hovered')
+            soi = sq
+        else:
+            if sq.cur_colour is not sq.default_colour:
+                sq.change_colour(sq.default_colour)
+    return soi
 
 
 def detect_mouse_additional(screen) -> None:

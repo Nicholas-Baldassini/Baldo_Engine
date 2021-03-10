@@ -22,9 +22,11 @@ class Board:
     len(squares[i]) == 8
     """
     squares: [['Square']]  # Private
+    flipped: bool
 
     def __init__(self):
         self.squares = self.init_square_list()
+        self.flipped = False  # False is white on bottom
 
     def add_square(self, sq_obj: 'Square') -> None:
         rr = sett.rows[::-1]  # Reversed rows, used for indexing
@@ -78,7 +80,6 @@ class Board:
                 the_chosen_ones.append(peece)
         return the_chosen_ones
 
-
     def flip_board(self) -> None:
         """
         Internally flip the board, white is on top, black on bottom
@@ -86,15 +87,25 @@ class Board:
         for row in range(len(self.squares)):
             self.squares[row] = self.squares[row][::-1]
         self.squares = self.squares[::-1]
+        self.flipped = not self.flipped  # Toggle flipped status
 
     def get_square(self, file: str, row: str) -> 'Square':
         """
         Retrieve a specific square given code
         Return square object
         """
-        rr = sett.rows[::-1]
+        if not isinstance(file, str) or not isinstance(row, str):
+            print("File or Row is not a str")
+            raise Exception
+        if self.flipped:
+            rr = sett.rows
+            rf = sett.files[::-1]
+        else:
+            rr = sett.rows[::-1]  # Must reverse list because square list is
+                                  # read top, row 8 to bottom, ro 1
+            rf = sett.files
         row = rr.index(row)
-        sq = self.squares[row][sett.files.index(file)]
+        sq = self.squares[row][rf.index(file)]
         return sq
 
     def get_piece(self, file, row):
