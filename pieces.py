@@ -96,6 +96,7 @@ class Pawn(Piece):
 
 
     def promote(self):
+        # CALL BOARD.INIT_COLOURED_PIECES SINCE A NEW PIECE WAS ADDED
         pass
 
     def legal_moves(self):

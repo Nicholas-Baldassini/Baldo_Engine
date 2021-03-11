@@ -1,36 +1,45 @@
-from typing import List
+""" Basic python stack ADT implementation """
+from typing import List, Any
+
 
 class Stack:
     """
-    Basic Stack object, used to ease processing and cut corners
+    Basic Stack object, used to ease processing and cut corners wherever
+    possible
     """
     stack: List
     name: str
 
-    def __init__(self, name="", premade=[]):
+    def __init__(self, name="", default=None):
         """
-        premade is a list of something that you want as a stack already,
-        Whatever the order of premade is will be the order of the stack from bot
+        default is a list of something that you want as a stack already,
+        Whatever the order of default is will be the order of the stack from bot
         to top
 
-        if premade is not a list, it is ignored
-
+        if default is not a list, it is ignored
         """
-        if isinstance(premade, list):
-            self.stack = premade
-        else:
+        if type(default) is not list:
             self.stack = []
+        else:
+            self.stack = default
         self.name = name
 
     def is_empty(self) -> bool:
+        """
+        Return True if stack is empty, contains no items
+        Return False if elements exist in the stack
+        """
         return len(self.stack) == 0
 
     def push(self, obj) -> None:
+        """
+        Push an item to the end of the stack, append to the end of the list
+        """
         self.stack.append(obj)
 
-    def pull(self) -> 'Any':
+    def pull(self) -> Any:
         """
-        Removes the top obj on the stack and returns it
+        Removes the top item on the stack and returns it
         """
         if self.is_empty():
             print("Stack: {} is empty and was pulled".format(self.name))
@@ -43,17 +52,24 @@ class Stack:
         """
         return len(self.stack)
 
-    def remove_objs(self, position: int, destruction: int ) -> None:
+    def remove_item(self, position: int, destruction: int) -> None:
         """
-        Removes destruction amount of obj's in order below the position obj
+        Removes a destruction amount of item's in order below the position obj
         Preserves order of stack after removal
 
-        position is the position in the stack of the obj, from bottom to top
+        position is the position in the stack of the obj, from bottom to top,
+        the first added item is position 1
+
+        >>> s = Stack(default=[1, 2, 3, 4, 5])
+        >>> s.remove_item(4, 3)
+        >>> s.stack
+        [4, 5]
         """
         height = self.height()
         holder = []
 
-        while height != position:
+        # Store all items from position to height
+        while height != position - 1:
             holder.append(self.pull())
             height = self.height()
 
@@ -71,12 +87,15 @@ class Stack:
 
 
 if __name__ == '__main__':
-    s = Stack()
-    t = range(7)
-    for i in t:
-        s.push(i)
-    s.pull()
-    print(s)
-    s.remove_objs(4, 4)
-    print(s)
+    import doctest
+    doctest.testmod()
+
+    # s = Stack()
+    # t = range(7)
+    # for i in t:
+    #     s.push(i)
+    # s.pull()
+    # print(s)
+    # s.remove_item(4, 4)
+    # print(s)
 

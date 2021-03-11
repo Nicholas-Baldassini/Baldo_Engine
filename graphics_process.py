@@ -1,3 +1,7 @@
+"""
+File to extract and process the sprites for pygame to use to display to screen
+"""
+
 import pygame
 import settings as sett
 icon_scaling = 16

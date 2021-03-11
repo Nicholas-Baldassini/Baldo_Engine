@@ -76,9 +76,10 @@ def start_game():
                       sett.rows[6], sett.piece_types[5], sett.teams[1])
         master_board.place_piece(pawn)
 
-    for peece in master_board.get_colour_pieces_on_board('white'):
+    master_board.init_coloured_pieces()
+    for peece in master_board.coloured_pieces['white']:
         peece.create_vision(master_board)
-    for peece in master_board.get_colour_pieces_on_board('black'):
+    for peece in master_board.coloured_pieces['black']:
         peece.create_vision(master_board)
 
 
