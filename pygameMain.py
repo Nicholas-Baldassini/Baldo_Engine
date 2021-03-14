@@ -59,7 +59,8 @@ def select_possible_piece(square: board.Square,
                 select_mode_[1] = None
         else:
             if square:
-                print(square.row, square.file)
+                # print(square.code)
+                # print(square.file, square.row)
                 game.move_piece(select_mode_[1], square.row, square.file)
 
 

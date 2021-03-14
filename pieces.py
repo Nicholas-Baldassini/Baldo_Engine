@@ -1,17 +1,27 @@
-import board
+import board  # Used as annotator and in some methods
 import settings as sett
+from typing import List
+
 
 class Piece:
     """
     Public Interface Class representing a single piece object
+    Abstract Class, all piece types are instances of this class
+
+    file in settings.files
+    row in settings.rows
+    type_ in settings.piece_types
+    code = file + row
+    if captured is True, piece is removed from play
+    team in settings.teams
     """
     file: str
     row: str
     type_: str
-    code: str
+    code: str  # ToDo Update this on piece moves
     captured: bool
     team: str
-    vision: ['board.Square']
+    vision: List['board.Square']  # Any square that this piece can attack
     # rules: {''}
 
     def __init__(self, file: str, row: str, type_: str, team: str):
@@ -23,33 +33,45 @@ class Piece:
         self.team = team
         self.vision = []
 
-
-    def legal_moves(self):
+    def legal_moves(self) -> List['board.Square']:
+        """
+        Abstract method,
+        Returns the squares in a piece's vision the piece
+        can legally move too
+        """
         raise NotImplementedError
 
-    def create_vision(self, board_: 'board.Board'):
+    def create_vision(self, board_: 'board.Board') -> None:
         """
+        Abstract method,
         Create list of squares that this piece could move too, no obstructions
+        ignoring legality
+
+        Unique to piece type
         """
         raise NotImplementedError
 
-    def get_vision(self):
+    def get_vision(self) -> List['board.Square']:
         """
-        Return vision of piece
+        Getter method to return vision of piece
         """
         return self.vision
 
     def move_piece_object(self, to_row: str, to_file: str,
-                          board_: 'board.Board'):
+                          board_: 'board.Board') -> None:
         """
-        Changes file and row position in object
-        DOES NOT MOVE PIECE IN BOARD OBJECT JUST OBJECT VARIABLES
+        Changes file and row position in self object and update vision, updates
+        code as well
+        ========================================================
+        DOES NOT MOVE PIECE IN BOARD OBJECT JUST self VARIABLES
+        =====================================================
         """
+        self.code = self.code[:2] + to_file + to_row
         self.row = to_row
         self.file = to_file
-        self.vision = self.create_vision(board_)
+        self.create_vision(board_)
 
-    def capture(self):
+    def capture(self) -> None:
         """
         Flag captured, once captured piece is out of game
         """
@@ -57,19 +79,27 @@ class Piece:
 
 
 class Pawn(Piece):
+    """
+    Pawn Class, subclass of piece, adds promotion method and first move
+    attribute
+    """
     first_move: bool  # True if first move has been made
 
     def __init__(self, file: str, row: str, type_: str, team: str):
         Piece.__init__(self, file, row, type_, team)
         self.first_move = False
 
-    def make_first_move(self):
+    def make_first_move(self) -> None:
         """
-        This pawn made their first move, change attribute boolean
+        This pawn made their first move, change attribute boolean, no undoes
         """
         self.first_move = True
 
+    # ToDo make more efficient
     def create_vision(self, board_: 'board.Board') -> None:
+        """
+        Creates the vision of the pawn
+        """
         self.vision = []
         if self.first_move:
             if self.team == sett.teams[0]:  # White team
@@ -94,12 +124,15 @@ class Pawn(Piece):
             self.vision.append(board_.get_square(self.file, one_row_above))
             self.vision.append(board_.get_square(self.file, two_row_above))
 
-
-    def promote(self):
+    def promote(self) -> None:
+        """
+        Promotes the piece, delete this instance of the pawn and create new
+        object of promoted piece, updates board as well
+        """
         # CALL BOARD.INIT_COLOURED_PIECES SINCE A NEW PIECE WAS ADDED
         pass
 
-    def legal_moves(self):
+    def legal_moves(self) -> None:
         """
         Given vision, where can the piece actually move
         """
@@ -107,6 +140,9 @@ class Pawn(Piece):
 
 
 class Rook(Piece):
+    """
+    Rook class, subclass of piece class
+    """
     def create_vision(self, board_: 'board.Board'):
         """
         Create vision for the rook piece
@@ -127,13 +163,15 @@ class Rook(Piece):
         self.vision.remove(current_square)
         self.vision.remove(current_square)
 
-
     def legal_moves(self):
         pass
 
 
-
 class Knight(Piece):
+    """
+    Knight piece class subclass of piece class
+    """
+
     def create_vision(self, board_: 'board.Board'):
         self.vision = []
         r = sett.rows.index(self.row)
@@ -181,14 +219,13 @@ class Knight(Piece):
         # try:
         #     self.vision.append(board_.get_square(sett.files[r - 2],
         #                                          sett.rows[r - 1]))
-
-
-
-
+    def legal_moves(self) -> None:
+        pass
 
 
 class Bishop(Piece):
 
+    # ToDo make more efficient, much more
     def create_vision(self, board_: 'board.Board'):
         self.vision = []
         r = sett.rows.index(self.row)
@@ -233,9 +270,13 @@ class Bishop(Piece):
         lateral_inc = f
         vertical_inc = r
 
+    def legal_moves(self) -> None:
+        pass
+
 
 class King(Piece):
 
+    # ToDo make more efficient, copy knight layout
     def create_vision(self, board_: 'board.Board'):
         self.vision = []
         r = sett.rows.index(self.row)
@@ -275,6 +316,9 @@ class King(Piece):
         if f != 7:
             self.vision.append(board_.get_square(sett.files[f + 1],
                                                  sett.rows[r]))
+
+    def legal_moves(self) -> None:
+        pass
 
 
 class Queen(Piece):
@@ -341,8 +385,5 @@ class Queen(Piece):
         lateral_inc = f
         vertical_inc = r
 
-
     def legal_moves(self):
         pass
-
-

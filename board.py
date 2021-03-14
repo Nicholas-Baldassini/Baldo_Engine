@@ -131,6 +131,8 @@ class Board:
         """
         Retrieve a specific square given file and row of the square
         Return square object
+
+        # Note: Handles flipped board
         """
         if not isinstance(file, str) or not isinstance(row, str):
             print("File or Row is not str")
@@ -164,13 +166,23 @@ class Board:
         code
 
         Set the piece on its appropriate location
+
+        # Note: Handles flipped board
         """
+
+        if self.flipped:
+            rr = sett.rows
+            rf = sett.files[::-1]
+        else:
+            rr = sett.rows[::-1]
+            rf = sett.files
         piece_row = piece.row
         piece_file = piece.file
-        rr = sett.rows[::-1]
+        # rr = sett.rows[::-1]
+        # rf = sett.files
 
         # Square of interest
-        soi = self.squares[rr.index(piece_row)][sett.files.index(piece_file)]
+        soi = self.squares[rr.index(piece_row)][rf.index(piece_file)]
 
         if soi.holding and isinstance(soi.holding, pieces.Piece):
             if soi.holding is not piece:

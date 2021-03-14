@@ -83,7 +83,6 @@ def start_game():
         peece.create_vision(master_board)
 
 
-
 def can_piece_move(piece: 'Piece object', to_row: str, to_file: str) -> bool:
     """
     Given a piece and a destination, return True if piece can move there
@@ -95,6 +94,7 @@ def can_piece_move(piece: 'Piece object', to_row: str, to_file: str) -> bool:
 
 def En_passant():
     pass
+
 
 def castle():
     pass
@@ -130,6 +130,7 @@ def move_piece(piece: 'Piece object', to_row: str, to_file: str) -> None:
     master_board.place_piece(piece)
 
     turn_number += 1
+    print(master_board)
 
 
 if __name__ == '__main__':

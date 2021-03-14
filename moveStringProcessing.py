@@ -1,5 +1,8 @@
 import game
 import settings as sett
+from typing import List, Optional
+import board
+import pieces
 """
 Chess strings are retrieved from https://old.chesstempo.com/ database and 
 processed according to their formatting
@@ -17,6 +20,76 @@ for move in fake_order:
 
 
 is_white = True
+
+
+def process_move_code(code: str, board_: 'board.Board', colour: str) -> \
+                                                           (str,
+                                                            str,
+                                                            str,
+                                                            bool,
+                                                            None):
+    """
+    Responsible for processing the code given, examples
+    --------------------------------------------------
+
+    Output tuple:
+    ( colour of piece,
+    type of piece to move,
+    The code square the piece is to be moved to,
+    piece on destination is to be captured,
+    promotion information
+
+    # ToDo Castle's information)
+
+
+    B - bishop
+    N - knight
+    R - rook
+    K - king
+    Q - queen
+    'None' - pawn
+
+    x - non-pawn captures
+    'File' - pawn captures
+
+    # Todo Ambiguous moves
+
+    'code + piece type' - pawn promotion
+    e8=Q - pawn promotion to queen on
+
+    0-0 - king side castle
+    0-0-0 - queen side castle
+
+    + - check
+
+    # - checkmate
+
+    Examples:
+    =========
+    Qe5 queen moves to square e5
+
+    d4 - move pawn to d4
+
+    0-0 - castle king side
+
+    a8=K+ - promote pawn on a8 with check
+
+    hxg8=Q - pawn from h file captures piece on g8 and promote to queen
+
+    0-0 castle with check
+    """
+    castles = ['0-0', '0-0-0']
+    check_and_mate = ['+', '#']
+    if code in castles:
+        pass
+    if code[-1] in check_and_mate:
+        pass
+
+    if '=' in code: # Promotion
+        pass
+
+
+
 def make_move(move: str):
     """
     Responsible for finding which piece is to move and to move it
